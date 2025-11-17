@@ -1,6 +1,7 @@
 package app
 
 import (
+	config "AuthInGo/config/env"
 	"fmt"
 	"net/http"
 	"time"
@@ -10,7 +11,10 @@ type Config struct {
 	Addr string
 }
 
-func NewConfig(addr string) *Config {
+func NewConfig() *Config {
+
+	addr := config.GetString("PORT", ":3005")
+
 	return &Config{ Addr: addr}
 }
 
