@@ -6,12 +6,19 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-func CreateRouter() *chi.Mux {
+// 
+type Router interface {
+	Register(r chi.Router)
+}
 
-	router := chi.NewRouter()
+func CreateRouter(UserRouter Router) *chi.Mux {
 
-	router.Get("/ping", controllers.PingHandler)
+	chiRouter := chi.NewRouter()
 
-	return router
+	chiRouter.Get("/ping", controllers.PingHandler)
+
+	UserRouter.Register(chiRouter)
+
+	return chiRouter
 
 }
