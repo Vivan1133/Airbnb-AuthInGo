@@ -6,7 +6,7 @@ import (
 )
 
 type IUserService interface {
-	CreateUser() error
+	GetUserById() error
 }
 
 type UserService struct {
@@ -19,8 +19,8 @@ func NewUserService(_userRepository db.IUserRepository) IUserService {
 	}
 }
 
-func (u *UserService) CreateUser() error {
-	fmt.Println("Inside user service createUser")
-	u.userRepository.Create()
+func (u *UserService) GetUserById() error {
+	fmt.Println("Inside user service")
+	u.userRepository.DeleteById(1)
 	return nil
 }

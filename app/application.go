@@ -3,12 +3,13 @@ package app
 import (
 	config "AuthInGo/config/env"
 	"AuthInGo/controllers"
-	db "AuthInGo/db/repositories"
+	dbRep "AuthInGo/db/repositories"
 	"AuthInGo/router"
 	"AuthInGo/services"
 	"fmt"
 	"net/http"
 	"time"
+	dbConfig "AuthInGo/config/db"
 )
 
 type Config struct {
@@ -33,7 +34,14 @@ func NewServer(config Config) *Server {
 
 func (server *Server) Run() error {
 
-	urep := db.NewUserRepository()
+	db, err := dbConfig.SetupDB()
+
+	if err != nil {
+		fmt.Println("Error connecting to db")
+		return err
+	}
+
+	urep := dbRep.NewUserRepository(db)
 
 	us := services.NewUserService(urep)
 
