@@ -2,6 +2,7 @@ package router
 
 import (
 	"AuthInGo/controllers"
+	"AuthInGo/middlewares"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -17,5 +18,6 @@ func NewUserRouter(_userController *controllers.UserController) Router {
 }
 
 func (ur *UserRouter) Register(r chi.Router) {
-	r.Get("/user", ur.userController.GetUserByIdHandler)
+	r.With(middlewares.CreateUserMiddleware).Post("/user", ur.userController.CreateUserHandler)
+
 }

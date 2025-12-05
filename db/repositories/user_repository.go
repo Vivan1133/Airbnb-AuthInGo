@@ -5,13 +5,15 @@ import (
 	"AuthInGo/models"
 	"database/sql"
 	"fmt"
+
 )
 
 type IUserRepository interface {
-	Create() error
-	GetById() (*models.User, error)
+	Create(name string, email string, password string) error
+	GetById(id int64) (*models.User, error)
 	GetAll() ([]*models.User, error)
 	DeleteById(id int64) error
+	GetByEmail(email string) (*models.User, error)
 }
 
 type UserRepository struct {
@@ -25,7 +27,7 @@ func (u *UserRepository) GetAll() ([]*models.User, error) {
 	rows, err := u.db.Query(query)
 
 	if err != nil {
-		fmt.Println("error getting all data")
+		fmt.Println("error getting all data in repo")
 		return nil, err
 	}
 
@@ -39,7 +41,7 @@ func (u *UserRepository) GetAll() ([]*models.User, error) {
 		err := rows.Scan(&user.Id, &user.Name, &user.Email, &user.Password, &user.Created_at, &user.Updated_at)
 
 		if err != nil {
-			fmt.Println("error while scanning")
+			fmt.Println("error while scanning in repo")
 			return nil, err
 		}
 
@@ -49,7 +51,7 @@ func (u *UserRepository) GetAll() ([]*models.User, error) {
 	rowsErr := rows.Err()
 
 	if rowsErr != nil {
-		fmt.Println("rows error")
+		fmt.Println("rows error in repo")
 		return nil, rowsErr
 	}
 
@@ -90,12 +92,12 @@ func (u *UserRepository) DeleteById(id int64) error {
 	return nil
 }
 
-func(u *UserRepository) Create() error {
+func(u *UserRepository) Create(name string, email string, encryptedPass string) error {
 
 	// query
 	query := "INSERT INTO USERS (name, email, password) VALUES (?, ?, ?)"
 
-	result, err := u.db.Exec(query, "vansh", "vansh@sample.com", "654321")
+	result, err := u.db.Exec(query, name, email, encryptedPass)
 
 	if err != nil {
 		fmt.Println("error inserting the user")
@@ -119,14 +121,14 @@ func(u *UserRepository) Create() error {
 	return nil
 }
 
-func (u *UserRepository) GetById() (*models.User, error) {
+func (u *UserRepository) GetById(id int64) (*models.User, error) {
 	fmt.Println("Inside user repository")
 
 	// prepare the query
 
 	query := "SELECT ID, NAME, EMAIL, CREATED_AT, UPDATED_AT FROM USERS WHERE ID = ?"
 
-	row := u.db.QueryRow(query, 1)
+	row := u.db.QueryRow(query, id)
 
 	user := &models.User{}
 
@@ -144,6 +146,31 @@ func (u *UserRepository) GetById() (*models.User, error) {
 
 	fmt.Println("printing user: ", user)
 	return user, err
+}
+
+func (u *UserRepository) GetByEmail(email string) (*models.User, error) {
+
+	// prepare a query
+
+	query := "SELECT * FROM USERS WHERE EMAIL = ?"
+
+	row := u.db.QueryRow(query, email)
+
+	user := &models.User{}
+
+	err := row.Scan(&user.Id, &user.Name, &user.Email, &user.Password, &user.Created_at, &user.Updated_at)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			fmt.Println("no user found with the providede user name")
+			return nil, err
+		}
+	}
+
+	fmt.Println("fetched user by email: ", user)
+
+	return user, nil
+
 }
 
 func NewUserRepository(_db *sql.DB) IUserRepository {
