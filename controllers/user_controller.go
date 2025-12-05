@@ -41,3 +41,20 @@ func (uc *UserController) CreateUserHandler(w http.ResponseWriter, r *http.Reque
 	utils.WriteJsonSucessResponse(w, http.StatusOK, "successfully created the user", "")
 
 }
+
+func (uc *UserController) SignInUserHandler(w http.ResponseWriter, r *http.Request) {
+
+	payloadRaw := r.Context().Value(middlewares.SignInUserCtx)
+
+	payload := payloadRaw.(dtos.SignInUserRequestDto)
+
+	token, err := uc.userService.SignIn(payload.Email, payload.Password)
+
+	if err != nil {
+		utils.WriteErrorResponse(w, http.StatusInternalServerError, "error while sigin process", err)
+		return
+	}
+
+	utils.WriteJsonSucessResponse(w, http.StatusOK, "successfully signed in", token)
+	
+}

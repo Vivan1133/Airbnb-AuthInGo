@@ -19,5 +19,5 @@ func NewUserRouter(_userController *controllers.UserController) Router {
 
 func (ur *UserRouter) Register(r chi.Router) {
 	r.With(middlewares.CreateUserMiddleware).Post("/user", ur.userController.CreateUserHandler)
-
+	r.With(middlewares.SignInUserMiddleware).Post("/auth/signin", ur.userController.SignInUserHandler)
 }

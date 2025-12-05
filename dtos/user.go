@@ -11,3 +11,7 @@ type CreaUserResponseDto struct {
 	StatusCode int64 `json:"statusCode"`
 }
 
+type SignInUserRequestDto struct {
+	Email string `json:"email" validate:"required,email"`
+	Password string `json:"password" validate:"required,min=4"`
+}

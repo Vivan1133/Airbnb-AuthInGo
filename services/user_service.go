@@ -12,7 +12,8 @@ type IUserService interface {
 	Create(name string, email string, password string) 
 	GetAllUser() ([]*models.User, error)
 	DeleteUserById(id int64) error
-	GetUserByEmail(email string) (*models.User, error) 
+	GetUserByEmail(email string) (*models.User, error)
+	SignIn(email string, password string) (string, error)
 }
 
 type UserService struct {
