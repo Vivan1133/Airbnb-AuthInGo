@@ -3,9 +3,12 @@ package utils
 import (
 	env "AuthInGo/config/env"
 	"fmt"
+	"sync"
 	"time"
+
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
+	"golang.org/x/time/rate"
 )
 
 func HashPassword(plainTextPassword string) string {
@@ -47,5 +50,31 @@ func CreateJwtToken(email string) (string, error) {
 	}
 
 	return tokenString, nil
+
+}
+
+type visitor struct {
+	limiter *rate.Limiter
+	lastSeen time.Time
+}
+
+var visitors = make(map[string]*visitor)
+var mu sync.Mutex
+
+func GetVisitor(ip string) *rate.Limiter {
+
+	defer mu.Unlock()
+	
+	mu.Lock()
+	v, exists := visitors[ip]
+
+	if !exists {
+		limiter := rate.NewLimiter(rate.Every(1 * time.Minute), 5)
+		visitors[ip] = &visitor{limiter, time.Now()}
+		return limiter
+	}
+
+	v.lastSeen = time.Now()
+	return v.limiter
 
 }
