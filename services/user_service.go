@@ -101,7 +101,7 @@ func (u *UserService) SignIn (email string, password string) (string, error) {
 		return "", passChechErr
 	}
 
-	token, tokenCreateErr := utils.CreateJwtToken(email)
+	token, tokenCreateErr := utils.CreateJwtToken(user.Email, user.Id)
 
 	if tokenCreateErr != nil {
 		fmt.Println("error while creating the jwt token")

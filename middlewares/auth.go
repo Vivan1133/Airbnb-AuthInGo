@@ -2,12 +2,18 @@ package middlewares
 
 import (
 	env "AuthInGo/config/env"
+	"context"
 	"fmt"
 	"net/http"
 	"strings"
 
 	"github.com/golang-jwt/jwt/v5"
 )
+
+type userIDCtx struct{}
+var UserIDCtx = userIDCtx{}
+type userEmailCtx struct{}
+var UserEmailCtx = userEmailCtx{}
 
 func JwtAuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func (w http.ResponseWriter, r *http.Request) {
@@ -44,16 +50,18 @@ func JwtAuthMiddleware(next http.Handler) http.Handler {
 		}
 
 		email, ok := claims["email"].(string)
+		id, idOk := claims["id"]
 
-		if !ok {
+		if !ok || !idOk {
 			http.Error(w, "invalid token claims", http.StatusUnauthorized)
 			return 
 		}
 
-		fmt.Println(email)
-
-		fmt.Printf("authentication successfull user with email %v", email)
+		fmt.Printf("authentication successfull user with email as %v and id as %v", email, id)
 		
-		next.ServeHTTP(w, r)
+		ctx := context.WithValue(r.Context(), UserIDCtx, id)
+		ctx = context.WithValue(ctx, UserEmailCtx, email)
+
+		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

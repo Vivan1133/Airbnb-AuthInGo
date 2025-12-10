@@ -33,14 +33,14 @@ func CheckHashedPassword(plainTextPassword string, hashedPassword string) (bool,
 	}
 }
 
-func CreateJwtToken(email string) (string, error) {
+func CreateJwtToken(email string, userID int64) (string, error) {
 
 	secretKey := []byte(env.GetString("SECRET_KEY", "mysecretkey"))
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256,
 		jwt.MapClaims{
 			"email": email,
-			"exp":   time.Now().Add(time.Hour * 24).Unix(),
+			"id": userID,
 		})
 
 	tokenString, err := token.SignedString(secretKey)

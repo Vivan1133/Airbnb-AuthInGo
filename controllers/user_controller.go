@@ -7,6 +7,8 @@ import (
 	"AuthInGo/utils"
 	"fmt"
 	"net/http"
+	"strconv"
+	"github.com/go-chi/chi/v5"
 )
 
 type UserController struct {
@@ -21,11 +23,29 @@ func NewUserController(_userService services.IUserService) *UserController {
 
 func (uc *UserController) GetUserByIdHandler(w http.ResponseWriter, r *http.Request) {
 
+	userIdString := chi.URLParam(r, "id")	// returned string id
 
+	userID, err := strconv.Atoi(userIdString)
+	if err != nil {
+		http.Error(w, "wrong user id passed", http.StatusBadRequest)
+		return
+	}
 
+	user, err := uc.userService.GetUserById(int64(userID))
+
+	if err != nil {
+		http.Error(w, "could not find the user", http.StatusInternalServerError)
+		return
+	}
+
+	errJson := utils.WriteJsonSucessResponse(w, http.StatusOK, "user found", user)
+
+	if errJson != nil {
+		http.Error(w, "error writing json success response", http.StatusInternalServerError)
+	}
 
 	// uc.userService.GetUserById()
-	w.Write([]byte("user reg endpoint"))
+	// w.Write([]byte("user reg endpoint"))
 }
 
 func (uc *UserController) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
