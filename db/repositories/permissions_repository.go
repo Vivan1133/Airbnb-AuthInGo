@@ -11,7 +11,7 @@ type IPermissionsRepository interface {
 	GetPermissionByName(name string) (*models.Permission, error)
 	DeletePermissionById(id int) (error)
 	UpdatePermissionById(id int, name string, desc string, resource string, action string) (*models.Permission, error)
-	CreatePermission(name string, desc string, resource string, action string) (error)
+	CreatePermission(name string, desc string, resource string, action string) (*models.Permission, error)
 }
 
 type PermissionsRepository struct {
@@ -34,11 +34,8 @@ func (r *PermissionsRepository) GetPermissionById(id int) (*models.Permission, e
 		WHERE ID = ?
 	`
 
-	row := r.db.QueryRow(query, id)
-
 	var p models.Permission
-
-	err := row.Scan(
+	err := r.db.QueryRow(query, id).Scan(
 		&p.Id,
 		&p.Name,
 		&p.Description,
@@ -50,7 +47,7 @@ func (r *PermissionsRepository) GetPermissionById(id int) (*models.Permission, e
 
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, err
+			return nil, nil
 		}
 		return nil, err
 	}
@@ -76,7 +73,7 @@ func (r *PermissionsRepository) GetAllPermissions() ([]*models.Permission, error
 	for rows.Next() {
 		var p models.Permission
 
-		err := rows.Scan(
+		if err := rows.Scan(
 			&p.Id,
 			&p.Name,
 			&p.Description,
@@ -84,12 +81,15 @@ func (r *PermissionsRepository) GetAllPermissions() ([]*models.Permission, error
 			&p.Action,
 			&p.Created_at,
 			&p.Updated_at,
-		)
-		if err != nil {
+		); err != nil {
 			return nil, err
 		}
 
 		permissions = append(permissions, &p)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
 	}
 
 	return permissions, nil
@@ -103,11 +103,8 @@ func (r *PermissionsRepository) GetPermissionByName(name string) (*models.Permis
 		WHERE NAME = ?
 	`
 
-	row := r.db.QueryRow(query, name)
-
 	var p models.Permission
-
-	err := row.Scan(
+	err := r.db.QueryRow(query, name).Scan(
 		&p.Id,
 		&p.Name,
 		&p.Description,
@@ -119,7 +116,7 @@ func (r *PermissionsRepository) GetPermissionByName(name string) (*models.Permis
 
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, err
+			return nil, nil
 		}
 		return nil, err
 	}
@@ -127,19 +124,27 @@ func (r *PermissionsRepository) GetPermissionByName(name string) (*models.Permis
 	return &p, nil
 }
 
-func (r *PermissionsRepository) CreatePermission( name string, desc string, resource string, action string ) error {
+func (r *PermissionsRepository) CreatePermission(name string, desc string, resource string, action string ) (*models.Permission, error) {
 
 	query := `
 		INSERT INTO PERMISSIONS (NAME, DESCRIPTION, RESOURCE, ACTION)
 		VALUES (?, ?, ?, ?)
 	`
 
-	_, err := r.db.Exec(query, name, desc, resource, action)
-	return err
+	res, err := r.db.Exec(query, name, desc, resource, action)
+	if err != nil {
+		return nil, err
+	}
+
+	id, err := res.LastInsertId()
+	if err != nil {
+		return nil, err
+	}
+
+	return r.GetPermissionById(int(id))
 }
 
-
-func (r *PermissionsRepository) UpdatePermissionById( id int, name string, desc string, resource string, action string ) (*models.Permission, error) {
+func (r *PermissionsRepository) UpdatePermissionById(id int, name string, desc string, resource string, action string) (*models.Permission, error) {
 
 	query := `
 		UPDATE PERMISSIONS
@@ -158,7 +163,7 @@ func (r *PermissionsRepository) UpdatePermissionById( id int, name string, desc 
 	}
 
 	if rowsAffected == 0 {
-		return nil, err
+		return nil, sql.ErrNoRows
 	}
 
 	return r.GetPermissionById(id)
@@ -182,9 +187,8 @@ func (r *PermissionsRepository) DeletePermissionById(id int) error {
 	}
 
 	if rowsAffected == 0 {
-		return err
+		return sql.ErrNoRows
 	}
 
 	return nil
 }
-
