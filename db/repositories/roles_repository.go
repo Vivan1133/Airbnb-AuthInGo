@@ -3,17 +3,23 @@ package db
 import (
 	"AuthInGo/models"
 	"database/sql"
-	"fmt"
 )
 
 type IRoleRepository interface {
+
 	GetRoleById(id int) (*models.Role, error)
 	GetRoleByName(name string) (*models.Role, error)
 	GetAllRoles() ([]*models.Role, error)
-	CreateRole(name string, desc string) (error)
-	DeleteRoleById(id int) (error)
-	UpdateRoleById(id int, name string, desc string) (error)
+
+	CreateRole(name string, desc string) (*models.Role, error)
+	UpdateRoleById(id int, name string, desc string) (*models.Role, error)
+
+	DeleteRoleById(id int) error
+
+	RoleExistsById(id int) (bool, error)
+	RoleExistsByName(name string) (bool, error)
 }
+
 
 type RoleRepository struct {
 	db *sql.DB
@@ -27,148 +33,181 @@ func NewRoleRepository(_db *sql.DB) IRoleRepository {
 
 func (rr *RoleRepository) GetRoleById(id int) (*models.Role, error) {
 
+	query := `
+		SELECT ID, NAME, DESCRIPTION, CREATED_AT, UPDATED_AT
+		FROM ROLES
+		WHERE ID = ?
+	`
+
 	var role models.Role
+	err := rr.db.QueryRow(query, id).Scan(
+		&role.Id,
+		&role.Name,
+		&role.Description,
+		&role.Created_at,
+		&role.Updated_at,
+	)
 
-	query := `SELECT ID, NAME, DESCRIPTION, CREATED_AT, UPDATED_AT FROM ROLES WHERE ID = ?`
-	row := rr.db.QueryRow(query, id)
-
-	err := row.Scan(&role.Id, &role.Name, &role.Description, &role.Created_at, &role.Updated_at)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			fmt.Println("No rows found with ID: ", id);
-			return nil, err
+			return nil, nil
 		}
 		return nil, err
 	}
 
 	return &role, nil
 }
+
 
 func (rr *RoleRepository) GetRoleByName(name string) (*models.Role, error) {
+
+	query := `
+		SELECT ID, NAME, DESCRIPTION, CREATED_AT, UPDATED_AT
+		FROM ROLES
+		WHERE NAME = ?
+	`
+
 	var role models.Role
+	err := rr.db.QueryRow(query, name).Scan(
+		&role.Id,
+		&role.Name,
+		&role.Description,
+		&role.Created_at,
+		&role.Updated_at,
+	)
 
-	query := `SELECT ID, NAME, DESCRIPTION, CREATED_AT, UPDATED_AT FROM ROLE WHERE NAME = ?`
-	row := rr.db.QueryRow(query, name)
-
-	err := row.Scan(&role.Id, &role.Name, &role.Description, &role.Created_at, &role.Updated_at)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			fmt.Println("No rows found with NAME: ", name)
-			return nil, err
+			return nil, nil
 		}
 		return nil, err
 	}
 
 	return &role, nil
-
 }
 
-func (rr *RoleRepository) GetAllRoles() ([]*models.Role, error) {
-	var roles []*models.Role
 
-	query := `SELECT ID, NAME, DESCRIPTION, CREATED_AT, UPDATED_AT FROM ROLES`
+func (rr *RoleRepository) GetAllRoles() ([]*models.Role, error) {
+
+	query := `
+		SELECT ID, NAME, DESCRIPTION, CREATED_AT, UPDATED_AT
+		FROM ROLES
+	`
+
 	rows, err := rr.db.Query(query)
-	
 	if err != nil {
-		if err == sql.ErrNoRows {
-			fmt.Println("Empty Roles tables", err)
-			return nil, err
-		}
 		return nil, err
 	}
+	defer rows.Close()
+
+	var roles []*models.Role
 
 	for rows.Next() {
 		var role models.Role
-
-		if err := rows.Scan(&role.Id, &role.Name, &role.Description, &role.Created_at, &role.Updated_at); err != nil {
-			fmt.Println("Error while scanning roles row ERROR: ", err)
+		err := rows.Scan(
+			&role.Id,
+			&role.Name,
+			&role.Description,
+			&role.Created_at,
+			&role.Updated_at,
+		)
+		if err != nil {
+			return nil, err
 		}
-		roles = append(roles, &role)
 
+		roles = append(roles, &role)
 	}
 
 	if err := rows.Err(); err != nil {
-        return nil, err
-    }
+		return nil, err
+	}
 
 	return roles, nil
 }
 
-func (rr *RoleRepository) CreateRole(name string, desc string) (error) {
 
-	query := `INSERT INTO ROLES (NAME, DESCRIPTION) VALUES (?, ?)`
+func (rr *RoleRepository) CreateRole(name string, desc string) (*models.Role, error) {
+
+	query := `
+		INSERT INTO ROLES (NAME, DESCRIPTION)
+		VALUES (?, ?)
+	`
+
 	result, err := rr.db.Exec(query, name, desc)
-
 	if err != nil {
-		fmt.Println("Can not insert into roles ERROR: ", err)
-		return err
+		return nil, err
 	}
 
-	rowsAffected, err := result.RowsAffected()
-
+	id, err := result.LastInsertId()
 	if err != nil {
-		fmt.Println("Error in rowsAffected")
-		return err
+		return nil, err
 	}
 
-	if rowsAffected == 0 {
-		fmt.Println("0 rows affected")
-		return nil
-	}
-
-	fmt.Println("Successfully INSERTED in ROLES")
-	return nil
+	return rr.GetRoleById(int(id))
 }
 
-func (rr *RoleRepository) DeleteRoleById(id int) (error) {
 
-	query := `DELETE FROM ROLES WHERE ID = ?`
+func (rr *RoleRepository) DeleteRoleById(id int) error {
 
-	result, err := rr.db.Exec(query, id)
+	query := `
+		DELETE FROM ROLES WHERE ID = ?
+	`
 
-	if err != nil {
-		fmt.Println("Error while executing query ERROR: ", err)
-		return nil
-	}
-
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		fmt.Println("Error in rows affected ERROR: ", err)
-		return nil
-	}
-	if rowsAffected == 0 {
-		fmt.Println("0 rows affected")
-		return nil
-	}
-
-	fmt.Println("Successfully DELETED the record");
-	return nil
-
+	_, err := rr.db.Exec(query, id)
+	return err
 }
 
-func (rr *RoleRepository) UpdateRoleById(id int, name string, desc string) (error) {
 
-	query := `UPDATE ROLES SET NAME = ?, DESCRIPTION = ? WHERE ID = ?`
+func (rr *RoleRepository) UpdateRoleById(id int, name string, desc string) (*models.Role, error) {
 
-	result, err := rr.db.Exec(query, name, desc, id)
+	query := `
+		UPDATE ROLES
+		SET NAME = ?, DESCRIPTION = ?
+		WHERE ID = ?
+	`
+
+	_, err := rr.db.Exec(query, name, desc, id)
+	if err != nil {
+		return nil, err
+	}
+
+	return rr.GetRoleById(id)
+}
+
+func (rr *RoleRepository) RoleExistsById(id int) (bool, error) {
+
+	query := `
+		SELECT 1 FROM ROLES WHERE ID = ? LIMIT 1
+	`
+
+	var exists int
+	err := rr.db.QueryRow(query, id).Scan(&exists)
 
 	if err != nil {
-		fmt.Println("Failed to execute update query ERROR: ", err)
+		if err == sql.ErrNoRows {
+			return false, nil
+		}
+		return false, err
 	}
 
-	rowsAffected, err := result.RowsAffected()
+	return true, nil
+}
+
+func (rr *RoleRepository) RoleExistsByName(name string) (bool, error) {
+
+	query := `
+		SELECT 1 FROM ROLES WHERE NAME = ? LIMIT 1
+	`
+
+	var exists int
+	err := rr.db.QueryRow(query, name).Scan(&exists)
 
 	if err != nil {
-		fmt.Println("Rows affected ERROR: ", err)
-		return nil
+		if err == sql.ErrNoRows {
+			return false, nil
+		}
+		return false, err
 	}
 
-	if rowsAffected == 0 {
-		fmt.Println("0 rows affected")
-		return nil
-	}
-
-	fmt.Println("Successfully updated the Roles record")
-
-	return nil
+	return true, nil
 }
