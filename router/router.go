@@ -13,7 +13,7 @@ type Router interface {
 	Register(r chi.Router)
 }
 
-func CreateRouter(UserRouter Router) *chi.Mux {
+func CreateRouter(UserRouter Router, RoleRouter Router) *chi.Mux {
 
 	chiRouter := chi.NewRouter()
 
@@ -35,6 +35,7 @@ func CreateRouter(UserRouter Router) *chi.Mux {
 	// http:localhost:3004/bookingservice/*						// http://localhost:3002/*					
 	
 	UserRouter.Register(chiRouter)
+	RoleRouter.Register(chiRouter)
 
 	return chiRouter
 

@@ -4,6 +4,7 @@ import (
 	config "AuthInGo/config/env"
 	"AuthInGo/controllers"
 	dbRep "AuthInGo/db/repositories"
+	dbRoleRep "AuthInGo/db/repositories"
 	"AuthInGo/router"
 	"AuthInGo/services"
 	"fmt"
@@ -42,17 +43,24 @@ func (server *Server) Run() error {
 	}
 
 	urep := dbRep.NewUserRepository(db)
+	rrep := dbRoleRep.NewRoleRepository(db)
+	rrprep := dbRoleRep.NewRolesPermissions(db)
+	rprep := dbRoleRep.NewPermissionsRepository(db)
+
 
 	us := services.NewUserService(urep)
+	rs := services.NewRoleService(rrep, rrprep, rprep)
 
 	uc := controllers.NewUserController(us)
+	rc := controllers.NewRoleController(rs)
 
 	urou := router.NewUserRouter(uc)
+	rrou := router.NewRoleRouter(rc)
 	
 
 	s := &http.Server {
 		Addr: server.Config.Addr,
-		Handler: router.CreateRouter(urou),
+		Handler: router.CreateRouter(urou, rrou),
 		ReadTimeout: 10 * time.Second,
 		WriteTimeout: 10 * time.Second,
 	}

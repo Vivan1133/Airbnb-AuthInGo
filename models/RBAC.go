@@ -1,13 +1,12 @@
 package models
 
-import "time"
 
 type Role struct {
 	Id          int
 	Name        string
 	Description string
-	Created_at  time.Time
-	Updated_at  time.Time
+	Created_at  string
+	Updated_at  string
 }
 
 type Permission struct {
@@ -16,6 +15,6 @@ type Permission struct {
 	Description string
 	Resource    string
 	Action      string
-	Created_at  time.Time
-	Updated_at  time.Time
+	Created_at  string
+	Updated_at  string
 }
