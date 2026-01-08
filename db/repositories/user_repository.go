@@ -9,7 +9,7 @@ import (
 )
 
 type IUserRepository interface {
-	Create(name string, email string, password string) error
+	Create(name string, email string, password string) (int, error)
 	GetById(id int64) (*models.User, error)
 	GetAll() ([]*models.User, error)
 	DeleteById(id int64) error
@@ -92,7 +92,7 @@ func (u *UserRepository) DeleteById(id int64) error {
 	return nil
 }
 
-func(u *UserRepository) Create(name string, email string, encryptedPass string) error {
+func(u *UserRepository) Create(name string, email string, encryptedPass string) (int, error) {
 
 	// query
 	query := "INSERT INTO USERS (name, email, password) VALUES (?, ?, ?)"
@@ -101,24 +101,16 @@ func(u *UserRepository) Create(name string, email string, encryptedPass string) 
 
 	if err != nil {
 		fmt.Println("error inserting the user")
-		return err
+		return 0, err
 	}
 
-	rowsAffected, rowErr := result.RowsAffected()
+	lastInsertedId, lastInsertedErr := result.LastInsertId()
 
-	if rowErr != nil {
-		fmt.Println("error fetching rows affected")
-		return rowErr
+	if lastInsertedErr != nil {
+		return 0, lastInsertedErr
 	}
 
-	if rowsAffected == 0 {
-		fmt.Println("no rows were affected")
-		return nil
-	}
-
-	fmt.Println("successfully created the user, rows affected: ", rowsAffected)
-
-	return nil
+	return int(lastInsertedId), nil
 }
 
 func (u *UserRepository) GetById(id int64) (*models.User, error) {

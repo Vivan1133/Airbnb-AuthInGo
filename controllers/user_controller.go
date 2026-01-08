@@ -56,7 +56,11 @@ func (uc *UserController) CreateUserHandler(w http.ResponseWriter, r *http.Reque
 
 	payload := payloadRaw.(dtos.CreateUserRequestDto)
 
-	uc.userService.Create(payload.Name, payload.Email, payload.Password)
+	err := uc.userService.Create(payload.Name, payload.Email, payload.Password)
+	if err != nil {
+		utils.WriteErrorResponse(w, http.StatusInternalServerError, "something went wrong while creating user", err)
+		return
+	}
 
 	utils.WriteJsonSucessResponse(w, http.StatusOK, "successfully created the user", "")
 

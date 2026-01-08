@@ -49,7 +49,7 @@ func (server *Server) Run() error {
 	urrep := dbRep.NewUserRoles(db)
 
 
-	us := services.NewUserService(urep)
+	us := services.NewUserService(urep, urrep)
 	rs := services.NewRoleService(rrep, rrprep, rprep, urrep)
 
 	uc := controllers.NewUserController(us)

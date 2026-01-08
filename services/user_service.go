@@ -9,7 +9,7 @@ import (
 
 type IUserService interface {
 	GetUserById(id int64) (*models.User, error)
-	Create(name string, email string, password string) 
+	Create(name string, email string, password string) (error)
 	GetAllUser() ([]*models.User, error)
 	DeleteUserById(id int64) error
 	GetUserByEmail(email string) (*models.User, error)
@@ -18,11 +18,13 @@ type IUserService interface {
 
 type UserService struct {
 	userRepository db.IUserRepository
+	userRoleRepo   db.IUsersRoles
 }
 
-func NewUserService(_userRepository db.IUserRepository) IUserService {
+func NewUserService(_userRepository db.IUserRepository, userRoleRep db.IUsersRoles) IUserService {
 	return &UserService{
 		userRepository: _userRepository,
+		userRoleRepo:userRoleRep,
 	}
 }
 
@@ -71,12 +73,20 @@ func (u *UserService) GetUserByEmail(email string) (*models.User, error) {
 	return user, nil
 }
 
-func (u *UserService) Create(name string, email string, password string) {
+func (u *UserService) Create(name string, email string, password string) (error) {
 
 	encryptedPass := utils.HashPassword(password)
 
-	u.userRepository.Create(name, email, encryptedPass)
-
+	lastInsertedId, err := u.userRepository.Create(name, email, encryptedPass)
+	if err != nil {
+		return err
+	}
+	// auto assign user role to all signed up user
+	assignErr := u.userRoleRepo.AssignRoleToUser(lastInsertedId, 2)
+	if assignErr != nil {
+		return assignErr
+	}
+	return nil
 }
 
 
