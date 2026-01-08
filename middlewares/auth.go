@@ -5,8 +5,10 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
-
+	repo "AuthInGo/db/repositories"
+	dbConfig "AuthInGo/config/db"
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -64,4 +66,39 @@ func JwtAuthMiddleware(next http.Handler) http.Handler {
 
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
+}
+
+func RequireAllRoles(roles ...string) func(http.Handler) http.Handler {
+
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+			userIdString := r.Context().Value(UserIDCtx).(string)
+			userId, err := strconv.Atoi(userIdString)
+			if err != nil {
+				http.Error(w, "Invalid user Id", http.StatusBadRequest)
+			}
+
+			db , _ := dbConfig.SetupDB()
+
+			urr := repo.NewUserRoles(db)
+
+			hasAllRoles, hasAllRolesErr := urr.HasAllRoles(userId, roles)
+
+			if hasAllRolesErr != nil {
+				http.Error(w, "Error checking user roles", http.StatusInternalServerError)
+				return
+			}
+
+			if !hasAllRoles {
+				http.Error(w, "Forbidden: You do not have the required roles", http.StatusForbidden)
+				return 
+			}
+
+			fmt.Println("User got all roles")
+
+			next.ServeHTTP(w, r)
+		})
+	}
+
 }

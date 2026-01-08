@@ -10,6 +10,7 @@ type IUsersRoles interface {
 	AssignRoleToUser(userId int, roleId int) (error)
 	RemoveRoleFromUser(userId int, roleId int) (error)
 	HasRole(userId int, roleName string) (bool, error)
+	HasAllRoles(userId int, roleName []string) (bool, error)
 	GetUserPermissions(userId int) ([]*models.Permission, error)
 	HasPermission(userId int, permissionName string) (bool, error)
 }
@@ -122,6 +123,38 @@ func (ur *UserRoles) HasRole(userId int, roleName string) (bool, error) {
 	}
 
 	return true, nil
+}
+
+func (ur *UserRoles) HasAllRoles(userId int, roleNames []string) (bool, error) {
+
+	query := `
+		SELECT COUNT(*) = ? FROM USERS_ROLES INNER JOIN ROLES ON USERS_ROLES.ROLE_ID = ROLES.ID 
+		WHERE USERS_ROLES.USER_ID = ? AND ROLES.NAME IN (?) GROUP BY USERS_ROLES.USER_ID
+	`
+
+	row := ur.db.QueryRow(query, len(roleNames), userId, roleNames)
+
+	var hasAllRoles bool
+
+	if err := row.Scan(&hasAllRoles); err != nil {
+		if err == sql.ErrNoRows {
+			return false, nil
+		}
+		return false, err
+	}
+
+
+	return hasAllRoles, nil
+	
+	// for _, role := range roleNames {
+	// 	res, _ := ur.HasRole(userId, role)
+	// 	if res == false {
+	// 		return false, nil
+	// 	}
+	// }
+
+	// return true, nil
+	
 }
 
 
