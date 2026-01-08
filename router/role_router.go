@@ -27,4 +27,6 @@ func (rr *RoleRouter) Register(r chi.Router) {
 	r.Post("/roles-permissions/{roleId}/{permissionId}", rr.roleController.AssignPermission)
 	r.Delete("/roles-permissions/{roleId}/{permissionId}", rr.roleController.RemovePermission)
 	r.Get("/roles-permissions/{roleId}", rr.roleController.GetRolePermissions)
+	r.With(middlewares.JwtAuthMiddleware, middlewares.RequireAllRoles("admin")).Post("/users-roles/assign/{userId}/{roleId}", rr.roleController.AssignRoleToUser)
+	// to assign a role only admin is allowed
 }

@@ -210,3 +210,28 @@ func (rc *RoleController) GetRolePermissions(w http.ResponseWriter, r *http.Requ
 	utils.WriteJsonSucessResponse(w, http.StatusOK, "fetched all permissions", permissions)
 }
 
+func (rc *RoleController) AssignRoleToUser(w http.ResponseWriter, r *http.Request) {
+	userIdStr := chi.URLParam(r, "userId")
+	roleIdStr := chi.URLParam(r, "roleId")
+
+	userId, userIdErr := strconv.Atoi(userIdStr)
+	if userIdErr != nil {
+		utils.WriteErrorResponse(w, http.StatusBadRequest, "wrong userId passed", userIdErr)
+		return
+	}
+
+	roleId, roleIdErr := strconv.Atoi(roleIdStr)
+	if roleIdErr != nil {
+		utils.WriteErrorResponse(w, http.StatusBadRequest, "wrong role id passed", roleIdErr)
+		return
+	}
+
+	err := rc.roleService.AssignRoleToUser(userId, roleId)
+	if err != nil {
+		utils.WriteErrorResponse(w, http.StatusInternalServerError, "error occured while assigning role to the user", err)
+		return
+	}
+
+	utils.WriteJsonSucessResponse(w, http.StatusOK, "Successfully assigned role to the user", nil)
+
+}

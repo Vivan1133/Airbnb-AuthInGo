@@ -46,10 +46,11 @@ func (server *Server) Run() error {
 	rrep := dbRoleRep.NewRoleRepository(db)
 	rrprep := dbRoleRep.NewRolesPermissions(db)
 	rprep := dbRoleRep.NewPermissionsRepository(db)
+	urrep := dbRep.NewUserRoles(db)
 
 
 	us := services.NewUserService(urep)
-	rs := services.NewRoleService(rrep, rrprep, rprep)
+	rs := services.NewRoleService(rrep, rrprep, rprep, urrep)
 
 	uc := controllers.NewUserController(us)
 	rc := controllers.NewRoleController(rs)

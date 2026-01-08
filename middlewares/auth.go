@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"strconv"
 	"strings"
 	repo "AuthInGo/db/repositories"
 	dbConfig "AuthInGo/config/db"
@@ -18,66 +17,71 @@ type userEmailCtx struct{}
 var UserEmailCtx = userEmailCtx{}
 
 func JwtAuthMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func (w http.ResponseWriter, r *http.Request) {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		authHeader := r.Header.Get("Authorization")
-
 		if authHeader == "" {
 			http.Error(w, "auth header required", http.StatusUnauthorized)
-			return 
+			return
 		}
 
 		if !strings.HasPrefix(authHeader, "Bearer ") {
-			http.Error(w, "auth Header must have a Bearer", http.StatusUnauthorized)
-			return 
+			http.Error(w, "auth header must start with Bearer", http.StatusUnauthorized)
+			return
 		}
 
-		token := strings.TrimPrefix(authHeader, "Bearer ")
-
-		if token == "" {
+		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
+		if tokenString == "" {
 			http.Error(w, "empty token provided", http.StatusUnauthorized)
-			return 
+			return
 		}
 
 		claims := jwt.MapClaims{}
 
-		t, err := jwt.ParseWithClaims(token, &claims, func (token *jwt.Token) (interface{}, error) {
+		token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
 			return []byte(env.GetString("SECRET_KEY", "secretkey")), nil
 		})
 
-		if err != nil {
-			fmt.Println(t, err)
-			http.Error(w, "invalid token passed", http.StatusUnauthorized)
-			return 
+		if err != nil || !token.Valid {
+			http.Error(w, "invalid token", http.StatusUnauthorized)
+			return
 		}
 
+		// --- Email ---
 		email, ok := claims["email"].(string)
-		id, idOk := claims["id"]
-
-		if !ok || !idOk {
-			http.Error(w, "invalid token claims", http.StatusUnauthorized)
-			return 
+		if !ok {
+			http.Error(w, "invalid email claim", http.StatusUnauthorized)
+			return
 		}
 
-		fmt.Printf("authentication successfull user with email as %v and id as %v", email, id)
-		
-		ctx := context.WithValue(r.Context(), UserIDCtx, id)
+		// --- User ID  ---
+		idFloat, ok := claims["id"].(float64)
+		if !ok {
+			http.Error(w, "invalid user id claim", http.StatusUnauthorized)
+			return
+		}
+
+		userID := int(idFloat)
+
+		fmt.Printf(
+			"authentication successful: email=%s, id=%d\n",
+			email, userID,
+		)
+
+		ctx := context.WithValue(r.Context(), UserIDCtx, userID)
 		ctx = context.WithValue(ctx, UserEmailCtx, email)
 
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
 
-func RequireAllRoles(roles ...string) func(http.Handler) http.Handler {
+
+func RequireAllRoles(roles ...string) func(http.Handler) (http.Handler) {
 
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
-			userIdString := r.Context().Value(UserIDCtx).(string)
-			userId, err := strconv.Atoi(userIdString)
-			if err != nil {
-				http.Error(w, "Invalid user Id", http.StatusBadRequest)
-			}
+			userId := r.Context().Value(UserIDCtx).(int)
 
 			db , _ := dbConfig.SetupDB()
 
@@ -86,6 +90,7 @@ func RequireAllRoles(roles ...string) func(http.Handler) http.Handler {
 			hasAllRoles, hasAllRolesErr := urr.HasAllRoles(userId, roles)
 
 			if hasAllRolesErr != nil {
+				fmt.Println(hasAllRolesErr)
 				http.Error(w, "Error checking user roles", http.StatusInternalServerError)
 				return
 			}
@@ -101,4 +106,33 @@ func RequireAllRoles(roles ...string) func(http.Handler) http.Handler {
 		})
 	}
 
+}
+
+func RequireAnyRole(roles ...string) func(http.Handler) (http.Handler) {
+	return func(h http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			userId := r.Context().Value(UserIDCtx).(int)
+
+			db , _ := dbConfig.SetupDB()
+
+			urr := repo.NewUserRoles(db)
+
+			hasAnyRole, hasAnyRoleErr := urr.HasAnyRole(userId, roles)
+
+			if hasAnyRoleErr != nil {
+				fmt.Println(hasAnyRoleErr)
+				http.Error(w, "Error checking user roles", http.StatusInternalServerError)
+				return
+			}
+
+			if !hasAnyRole {
+				http.Error(w, "Forbidden: You do not have any of the required roles", http.StatusForbidden)
+				return 
+			}
+
+			fmt.Println("User got role")
+
+			h.ServeHTTP(w, r)
+		})
+	}
 }

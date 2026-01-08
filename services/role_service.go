@@ -23,19 +23,22 @@ type IRoleService interface {
 	RemovePermission(roleId int, permissionId int) error
 	GetRolePermissions(roleId int) ([]*models.Permission, error)
 
+	AssignRoleToUser(userId int, roleId int) (error)
 }
 
 type RoleService struct {
 	roleRepository db.IRoleRepository
 	rolePermRepo   db.IRolesPermissions
 	permissionRepo db.IPermissionsRepository
+	userRolesRepo db.IUsersRoles
 }
 
-func NewRoleService(roleRepo db.IRoleRepository, rolePermRepo db.IRolesPermissions, permissionRepo db.IPermissionsRepository) (IRoleService) {
+func NewRoleService(roleRepo db.IRoleRepository, rolePermRepo db.IRolesPermissions, permissionRepo db.IPermissionsRepository, userRolesRepo db.IUsersRoles) (IRoleService) {
 	return &RoleService {
 		roleRepository: roleRepo,
 		rolePermRepo: rolePermRepo,
 		permissionRepo: permissionRepo, 
+		userRolesRepo: userRolesRepo,
 	}
 }
 
@@ -144,4 +147,8 @@ func (rs *RoleService) GetRolePermissions(roleId int) ([]*models.Permission, err
 	}
 
 	return rs.rolePermRepo.GetRolePermissions(roleId)
+}
+
+func (rs *RoleService) AssignRoleToUser(userId int, roleId int) (error) {
+	return rs.userRolesRepo.AssignRoleToUser(userId, roleId)
 }
