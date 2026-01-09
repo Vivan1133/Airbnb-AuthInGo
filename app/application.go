@@ -51,17 +51,20 @@ func (server *Server) Run() error {
 
 	us := services.NewUserService(urep, urrep)
 	rs := services.NewRoleService(rrep, rrprep, rprep, urrep)
+	ps := services.NewPermissionsService(rprep)
 
 	uc := controllers.NewUserController(us)
 	rc := controllers.NewRoleController(rs)
+	pc := controllers.NewPermissionController(ps)
 
 	urou := router.NewUserRouter(uc)
 	rrou := router.NewRoleRouter(rc)
+	prou := router.NewPermissionRouter(pc)
 	
 
 	s := &http.Server {
 		Addr: server.Config.Addr,
-		Handler: router.CreateRouter(urou, rrou),
+		Handler: router.CreateRouter(urou, rrou, prou),
 		ReadTimeout: 10 * time.Second,
 		WriteTimeout: 10 * time.Second,
 	}

@@ -13,7 +13,7 @@ type Router interface {
 	Register(r chi.Router)
 }
 
-func CreateRouter(UserRouter Router, RoleRouter Router) *chi.Mux {
+func CreateRouter(UserRouter Router, RoleRouter Router, PermissionRouter Router) *chi.Mux {
 
 	chiRouter := chi.NewRouter()
 
@@ -36,6 +36,7 @@ func CreateRouter(UserRouter Router, RoleRouter Router) *chi.Mux {
 	
 	UserRouter.Register(chiRouter)
 	RoleRouter.Register(chiRouter)
+	PermissionRouter.Register(chiRouter)
 
 	return chiRouter
 
