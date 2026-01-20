@@ -26,7 +26,7 @@ func NewUserService(_userRepository db.IUserRepository, userRoleRep db.IUsersRol
 		userRepository: _userRepository,
 		userRoleRepo:userRoleRep,
 	}
-}
+} 
 
 func (u *UserService) GetUserById(id int64) (*models.User, error) {
 

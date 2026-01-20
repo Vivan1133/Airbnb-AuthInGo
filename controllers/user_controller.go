@@ -21,6 +21,59 @@ func NewUserController(_userService services.IUserService) *UserController {
 	}
 }
 
+func (uc *UserController) GetAllUsersHandler(w http.ResponseWriter, r *http.Request) {
+	users, err := uc.userService.GetAllUser()
+
+	if err != nil {
+		http.Error(w, "error getting users", http.StatusInternalServerError)
+		return
+	}
+	errJson := utils.WriteJsonSucessResponse(w, http.StatusOK, "users fetched successfully", users)
+
+	if errJson != nil {
+		http.Error(w, "error writing json success response", http.StatusInternalServerError)
+	}
+}
+
+func (uc *UserController) DeleteUserByIdHandler(w http.ResponseWriter, r *http.Request) {
+
+	userIdString := chi.URLParam(r, "id")	// returned string id
+	userID, err := strconv.Atoi(userIdString)
+	if err != nil {
+		http.Error(w, "wrong user id passed", http.StatusBadRequest)
+		return
+	}
+	err = uc.userService.DeleteUserById(int64(userID))
+
+	if err != nil {
+		http.Error(w, "could not delete the user", http.StatusInternalServerError)
+		return
+	}
+	errJson := utils.WriteJsonSucessResponse(w, http.StatusOK, "user deleted successfully", "")
+
+	if errJson != nil {
+		http.Error(w, "error writing json success response", http.StatusInternalServerError)
+	}
+}
+
+func (uc *UserController) GetUserByEmailHandler(w http.ResponseWriter, r *http.Request) {
+
+	email := chi.URLParam(r, "email")
+
+	user, err := uc.userService.GetUserByEmail(email)
+
+	if err != nil {
+		http.Error(w, "could not find the user", http.StatusInternalServerError)
+		return
+	}
+
+	errJson := utils.WriteJsonSucessResponse(w, http.StatusOK, "user found", user)
+
+	if errJson != nil {
+		http.Error(w, "error writing json success response", http.StatusInternalServerError)
+	}
+}
+
 func (uc *UserController) GetUserByIdHandler(w http.ResponseWriter, r *http.Request) {
 
 	userIdString := chi.URLParam(r, "id")	// returned string id

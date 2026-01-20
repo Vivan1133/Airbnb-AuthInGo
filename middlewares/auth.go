@@ -75,7 +75,7 @@ func JwtAuthMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-
+// this method checks if the user has all the roles passed in the roles slice
 func RequireAllRoles(roles ...string) func(http.Handler) (http.Handler) {
 
 	return func(next http.Handler) http.Handler {
