@@ -132,4 +132,25 @@ ex : http://localhost:3004
 | `POST` | `/users-roles/assign/{userId}/{roleId}` | ✅ Admin       | Assign role to user |
 
 
+-----------------------------------
+## Steps to setup the starter template
+
+1. Clone the project
+
+```
+git clone https://github.com/Vivan1133/Airbnb-AuthInGo.git <ProjectName>
+```
+
+2. Move in to the folder structure
+
+```
+cd <ProjectName>
+```
+
+5. Start the server
+
+```
+go run main.go
+```
+
 
