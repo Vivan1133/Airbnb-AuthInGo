@@ -32,8 +32,11 @@ func CreateRouter(UserRouter Router, RoleRouter Router, PermissionRouter Router)
 
 
 	chiRouter.HandleFunc("/bookingservice/*", utils.ProxyToService("http://localhost:3002/", "/bookingservice"))
-	// http:localhost:3004/bookingservice/*						// http://localhost:3002/*					
+	// http:localhost:3004/bookingservice/*						// http://localhost:3002/*		
 	
+	chiRouter.HandleFunc("/reviewservice/*", utils.ProxyToService("http://localhost:8081/", "/reviewservice"))
+	// http:localhost:3004/reviewservice/*						// http://localhost:8081/*
+
 	UserRouter.Register(chiRouter)
 	RoleRouter.Register(chiRouter)
 	PermissionRouter.Register(chiRouter)
