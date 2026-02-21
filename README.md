@@ -133,3 +133,120 @@ ex : http://localhost:3004
 
 
 
+
+## API Request Payloads
+
+### User Authentication & Management
+
+#### POST `/auth/signup`
+```json
+{
+  "name": "John Doe",
+  "email": "john@example.com",
+  "password": "secret123"
+}
+```
+Required fields: `name`, `email`, `password`
+
+#### POST `/auth/signin`
+```json
+{
+  "email": "john@example.com",
+  "password": "secret123"
+}
+```
+Required fields: `email`, `password`
+
+#### GET `/auth/user/{id}`
+Request body: `None` (uses path param: `id`)
+
+#### GET `/auth/user/email/{email}`
+Request body: `None` (uses path param: `email`)
+
+#### GET `/auth/users`
+Request body: `None`
+
+#### DELETE `/auth/user/{id}`
+Request body: `None` (uses path param: `id`)
+
+### Role Management
+
+#### POST `/roles`
+```json
+{
+  "name": "manager",
+  "description": "Manager role"
+}
+```
+Required fields: `name`, `description`
+
+#### PATCH `/roles`
+```json
+{
+  "id": "2",
+  "name": "manager",
+  "description": "Updated manager role"
+}
+```
+Required fields: `id`, `name`, `description`
+
+#### GET `/roles`
+Request body: `None`
+
+#### GET `/roles/id/{roleId}`
+Request body: `None` (uses path param: `roleId`)
+
+#### GET `/roles/name/{roleName}`
+Request body: `None` (uses path param: `roleName`)
+
+#### DELETE `/roles/id/{roleId}`
+Request body: `None` (uses path param: `roleId`)
+
+### Role <-> Permission Mapping
+
+#### POST `/roles-permissions/{roleId}/{permissionId}`
+Request body: `None` (uses path params: `roleId`, `permissionId`)
+
+#### DELETE `/roles-permissions/{roleId}/{permissionId}`
+Request body: `None` (uses path params: `roleId`, `permissionId`)
+
+#### GET `/roles-permissions/{roleId}`
+Request body: `None` (uses path param: `roleId`)
+
+### Permission Management
+
+#### POST `/permissions`
+```json
+{
+  "name": "booking:create",
+  "desc": "Create booking",
+  "resource": "booking",
+  "action": "create"
+}
+```
+Required fields: `name`, `desc`, `resource`, `action`
+
+#### PUT `/permissions/{id}`
+```json
+{
+  "name": "booking:update",
+  "desc": "Update booking",
+  "resource": "booking",
+  "action": "update"
+}
+```
+Required fields: `name`, `desc`, `resource`, `action` (path param: `id`)
+
+#### GET `/permissions`
+Request body: `None`
+
+#### GET `/permissions/{id}`
+Request body: `None` (uses path param: `id`)
+
+#### DELETE `/permissions/{id}`
+Request body: `None` (uses path param: `id`)
+
+### User <-> Role Assignment
+
+#### POST `/users-roles/assign/{userId}/{roleId}`
+Request body: `None` (uses path params: `userId`, `roleId`)
