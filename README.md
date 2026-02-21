@@ -1,32 +1,29 @@
-# AuthService
-AuthService is a centralized authentication and authorization microservice designed to work as an API Gateway component.
+# 🔐 AuthService
 
-## 🚀 Features
+AuthService is a centralized authentication and authorization microservice designed to work as an API Gateway component. It provides JWT-based authentication, role-based access control (RBAC), and permission management for distributed systems.
 
-🔐 JWT-based Authentication
+---
 
-📝 User Sign Up & Sign In
+# 🚀 Features
 
-🔑 Role-Based Access Control (RBAC)
+* 🔐 JWT-based Authentication
+* 📝 User Sign Up & Sign In
+* 🔑 Role-Based Access Control (RBAC)
+* 🧩 Permission Management
+* 🔒 Password Hashing using bcrypt
+* ✅ Request Validation via middlewares
+* 🚦 Rate Limiting
+* 🔁 Reverse Proxy / API Gateway support
+* 🛡 Secure Middleware-based Authorization
+* 💎 DB Migrations using goose
 
-🧩 Permission Management
+---
 
-🔒 Password Hashing using bcrypt
+# 🗄 Database
 
-✅ Request Validation using middlewares
+**Database Name:** `airbnb_auth_dev`
 
-🚦 Rate Limiting
-
-🔁 Reverse Proxy / API Gateway
-
-🛡 Secure Middleware-based Authorization
-
-💎 DB Migrations using goose lib
-
-## 🗄 Database Design
-Database Name: ```airbnb_auth_dev```
-
-### ```users```
+## users
 
 | Column    | Type                 |
 | --------- | -------------------- |
@@ -37,7 +34,7 @@ Database Name: ```airbnb_auth_dev```
 | createdat | Timestamp            |
 | updatedat | Timestamp            |
 
-### ```roles```
+## roles
 
 | Column    | Type      |
 | --------- | --------- |
@@ -47,7 +44,7 @@ Database Name: ```airbnb_auth_dev```
 | createdat | Timestamp |
 | updatedat | Timestamp |
 
-### ```permissions```
+## permissions
 
 | Column    | Type      |
 | --------- | --------- |
@@ -59,107 +56,47 @@ Database Name: ```airbnb_auth_dev```
 | createdat | Timestamp |
 | updatedat | Timestamp |
 
-### ```users_roles```
+## users_roles
 
 | Column    | Type      |
 | --------- | --------- |
-| id        | UUID      |
-| user_id   | UUID      |
-| role_id   | UUID      |
+| id        | INT       |
+| user_id   | INT       |
+| role_id   | INT       |
 | createdat | Timestamp |
 | updatedat | Timestamp |
 
-### ```roles_permissions```
+## roles_permissions
 
 | Column        | Type      |
 | ------------- | --------- |
-| id            | UUID      |
-| role_id       | UUID      |
-| permission_id | UUID      |
+| id            | INT       |
+| role_id       | INT       |
+| permission_id | INT       |
 | createdat     | Timestamp |
 | updatedat     | Timestamp |
 
-## Base URL
-```
-{server-url}
-ex : http://localhost:3004
-```
+---
 
-## ```👤 User Authentication & Management Routes```
-
-| Method   | Endpoint                   | Authorization  | Description             |
-| -------- | -------------------------- | -------------- | ----------------------- |
-| `POST`   | `/auth/signup`             | ❌ Public       | Register a new user     |
-| `POST`   | `/auth/signin`             | ❌ Public       | User login (JWT issued) |
-| `GET`    | `/auth/user/{id}`          | ✅ User / Admin | Get user by ID          |
-| `GET`    | `/auth/user/email/{email}` | ✅ User / Admin | Get user by email       |
-| `GET`    | `/auth/users`              | ✅ User / Admin | Get all users           |
-| `DELETE` | `/auth/user/{id}`          | ✅ Admin        | Delete user by ID       |
-
-## ```🧑‍💼 Role Management Routes```
-
-| Method   | Endpoint                 | Authorization | Description       |
-| -------- | ------------------------ | ------------- | ----------------- |
-| `GET`    | `/roles`                 | ✅ Admin       | Get all roles     |
-| `GET`    | `/roles/id/{roleId}`     | ✅ Admin       | Get role by ID    |
-| `GET`    | `/roles/name/{roleName}` | ✅ Admin       | Get role by name  |
-| `POST`   | `/roles`                 | ✅ Admin       | Create a new role |
-| `PATCH`  | `/roles`                 | ✅ Admin       | Update role       |
-| `DELETE` | `/roles/id/{roleId}`     | ✅ Admin       | Delete role       |
-
-## ```🔗 Role ↔ Permission Mapping```
-
-| Method   | Endpoint                                     | Authorization | Description                 |
-| -------- | -------------------------------------------- | ------------- | --------------------------- |
-| `POST`   | `/roles-permissions/{roleId}/{permissionId}` | ✅ Admin       | Assign permission to role   |
-| `DELETE` | `/roles-permissions/{roleId}/{permissionId}` | ✅ Admin       | Remove permission from role |
-| `GET`    | `/roles-permissions/{roleId}`                | ✅ Admin       | Get permissions of a role   |
-
-## ```🔐 Permission Management Routes```
-
-| Method   | Endpoint            | Authorization | Description          |
-| -------- | ------------------- | ------------- | --------------------  |
-| `POST`   | `/permissions`      | ✅ Admin       | Create permission    |
-| `GET`    | `/permissions`      | ✅ Admin       | Get all permissions  |
-| `GET`    | `/permissions/{id}` | ✅ Admin       | Get permission by ID |
-| `PUT`    | `/permissions/{id}` | ✅ Admin       | Update permission    |
-| `DELETE` | `/permissions/{id}` | ✅ Admin       | Delete permission    |
-
-## ```👥 User ↔ Role Assignment```
-
-| Method | Endpoint                                | Authorization | Description         |
-| ------ | --------------------------------------- | ------------- | ------------------- |
-| `POST` | `/users-roles/assign/{userId}/{roleId}` | ✅ Admin       | Assign role to user |
-
-
------------------------------------
-## Steps to setup the starter template
-
-1. Clone the project
+# 🌐 Base URL
 
 ```
-git clone https://github.com/Vivan1133/Airbnb-AuthInGo.git <ProjectName>
+http://localhost:3004
 ```
 
-2. Move in to the folder structure
+---
 
-```
-cd <ProjectName>
-```
+# 👤 User Authentication & Management
 
-5. Start the server
+---
 
-```
-go run main.go
-```
+## POST `/auth/signup`
 
+**Description:** Register a new user
+**Authorization:** Public
 
+### Request Body
 
-## API Request Payloads
-
-### User Authentication & Management
-
-#### POST `/auth/signup`
 ```json
 {
   "name": "John Doe",
@@ -167,41 +104,210 @@ go run main.go
   "password": "secret123"
 }
 ```
-Required fields: `name`, `email`, `password`
 
-#### POST `/auth/signin`
+**Required fields:** `name`, `email`, `password`
+
+### Success Response — 200 OK
+
+```json
+{
+  "message": "successfully created the user",
+  "success": true,
+  "data": "",
+  "err": null
+}
+```
+
+### Validation Error — 400
+
+```json
+{
+  "message": "validation failed",
+  "error": "validation error details",
+  "data": null,
+  "success": false
+}
+```
+
+---
+
+## POST `/auth/signin`
+
+**Description:** User login (JWT issued)
+**Authorization:** Public
+
+### Request Body
+
 ```json
 {
   "email": "john@example.com",
   "password": "secret123"
 }
 ```
-Required fields: `email`, `password`
 
-#### GET `/auth/user/{id}`
-Request body: `None` (uses path param: `id`)
+**Required fields:** `email`, `password`
 
-#### GET `/auth/user/email/{email}`
-Request body: `None` (uses path param: `email`)
+### Success Response — 200 OK
 
-#### GET `/auth/users`
-Request body: `None`
+```json
+{
+  "message": "successfully signed in",
+  "success": true,
+  "data": "<jwt-token>",
+  "err": null
+}
+```
 
-#### DELETE `/auth/user/{id}`
-Request body: `None` (uses path param: `id`)
+### Unauthorized — 401
 
-### Role Management
+```text
+auth header required
+```
 
-#### POST `/roles`
+---
+
+## GET `/auth/user/{id}`
+
+**Description:** Get user by ID
+**Authorization:** User / Admin
+
+### Success Response — 200 OK
+
+```json
+{
+  "message": "user found",
+  "success": true,
+  "data": {
+    "Id": 1,
+    "Name": "John Doe",
+    "Email": "john@example.com",
+    "Password": "",
+    "Created_at": "2026-01-01T00:00:00Z",
+    "Updated_at": "2026-01-01T00:00:00Z"
+  },
+  "err": null
+}
+```
+
+---
+
+## GET `/auth/user/email/{email}`
+
+**Description:** Get user by email
+**Authorization:** User / Admin
+
+### Success Response — 200 OK
+
+```json
+{
+  "message": "user found",
+  "success": true,
+  "data": {
+    "Id": 1,
+    "Name": "John Doe",
+    "Email": "john@example.com",
+    "Password": "<hashed-password>",
+    "Created_at": "2026-01-01T00:00:00Z",
+    "Updated_at": "2026-01-01T00:00:00Z"
+  },
+  "err": null
+}
+```
+
+---
+
+## GET `/auth/users`
+
+**Description:** Get all users
+**Authorization:** User / Admin
+
+### Success Response — 200 OK
+
+```json
+{
+  "message": "users fetched successfully",
+  "success": true,
+  "data": [],
+  "err": null
+}
+```
+
+---
+
+## DELETE `/auth/user/{id}`
+
+**Description:** Delete user by ID
+**Authorization:** Admin
+
+### Success Response — 200 OK
+
+```json
+{
+  "message": "user deleted successfully",
+  "success": true,
+  "data": "",
+  "err": null
+}
+```
+
+---
+
+# 🧑‍💼 Role Management
+
+---
+
+## GET `/roles`
+
+**Authorization:** Admin
+**Description:** Get all roles
+
+### Success Response — 200 OK
+
+```json
+{
+  "message": "fetched all roles SUCCESSFULLY",
+  "success": true,
+  "data": [],
+  "err": null
+}
+```
+
+---
+
+## POST `/roles`
+
+**Authorization:** Admin
+**Description:** Create a new role
+
+### Request Body
+
 ```json
 {
   "name": "manager",
   "description": "Manager role"
 }
 ```
-Required fields: `name`, `description`
 
-#### PATCH `/roles`
+### Success Response — 202 Accepted
+
+```json
+{
+  "message": "Successfully created the role",
+  "success": true,
+  "data": {},
+  "err": null
+}
+```
+
+---
+
+## PATCH `/roles`
+
+**Authorization:** Admin
+**Description:** Update role
+
+### Request Body
+
 ```json
 {
   "id": "2",
@@ -209,34 +315,49 @@ Required fields: `name`, `description`
   "description": "Updated manager role"
 }
 ```
-Required fields: `id`, `name`, `description`
 
-#### GET `/roles`
-Request body: `None`
+### Success Response — 200 OK
 
-#### GET `/roles/id/{roleId}`
-Request body: `None` (uses path param: `roleId`)
+```json
+{
+  "message": "Successfully updated the role",
+  "success": true,
+  "data": {},
+  "err": null
+}
+```
 
-#### GET `/roles/name/{roleName}`
-Request body: `None` (uses path param: `roleName`)
+---
 
-#### DELETE `/roles/id/{roleId}`
-Request body: `None` (uses path param: `roleId`)
+## DELETE `/roles/id/{roleId}`
 
-### Role <-> Permission Mapping
+**Authorization:** Admin
+**Description:** Delete role
 
-#### POST `/roles-permissions/{roleId}/{permissionId}`
-Request body: `None` (uses path params: `roleId`, `permissionId`)
+### Success Response — 200 OK
 
-#### DELETE `/roles-permissions/{roleId}/{permissionId}`
-Request body: `None` (uses path params: `roleId`, `permissionId`)
+```json
+{
+  "message": "Successfully deleted the role",
+  "success": true,
+  "data": null,
+  "err": null
+}
+```
 
-#### GET `/roles-permissions/{roleId}`
-Request body: `None` (uses path param: `roleId`)
+---
 
-### Permission Management
+# 🔐 Permission Management
 
-#### POST `/permissions`
+---
+
+## POST `/permissions`
+
+**Authorization:** Admin
+**Description:** Create permission
+
+### Request Body
+
 ```json
 {
   "name": "booking:create",
@@ -245,9 +366,45 @@ Request body: `None` (uses path param: `roleId`)
   "action": "create"
 }
 ```
-Required fields: `name`, `desc`, `resource`, `action`
 
-#### PUT `/permissions/{id}`
+### Success Response — 201 Created
+
+```json
+{
+  "message": "permission created successfully",
+  "success": true,
+  "data": {},
+  "err": null
+}
+```
+
+---
+
+## GET `/permissions`
+
+**Authorization:** Admin
+**Description:** Get all permissions
+
+### Success Response — 200 OK
+
+```json
+{
+  "message": "permissions fetched successfully",
+  "success": true,
+  "data": [],
+  "err": null
+}
+```
+
+---
+
+## PUT `/permissions/{id}`
+
+**Authorization:** Admin
+**Description:** Update permission
+
+### Request Body
+
 ```json
 {
   "name": "booking:update",
@@ -256,18 +413,160 @@ Required fields: `name`, `desc`, `resource`, `action`
   "action": "update"
 }
 ```
-Required fields: `name`, `desc`, `resource`, `action` (path param: `id`)
 
-#### GET `/permissions`
-Request body: `None`
+### Success Response — 200 OK
 
-#### GET `/permissions/{id}`
-Request body: `None` (uses path param: `id`)
+```json
+{
+  "message": "permission updated successfully",
+  "success": true,
+  "data": {},
+  "err": null
+}
+```
 
-#### DELETE `/permissions/{id}`
-Request body: `None` (uses path param: `id`)
+---
 
-### User <-> Role Assignment
+## DELETE `/permissions/{id}`
 
-#### POST `/users-roles/assign/{userId}/{roleId}`
-Request body: `None` (uses path params: `userId`, `roleId`)
+**Authorization:** Admin
+**Description:** Delete permission
+
+### Success Response — 200 OK
+
+```json
+{
+  "message": "permission deleted successfully",
+  "success": true,
+  "data": null,
+  "err": null
+}
+```
+
+---
+
+# 🔗 Role ↔ Permission Mapping
+
+---
+
+## POST `/roles-permissions/{roleId}/{permissionId}`
+
+**Authorization:** Admin
+**Description:** Assign permission to role
+
+### Success Response — 200 OK
+
+```json
+{
+  "message": "Successfully assigned permission to role",
+  "success": true,
+  "data": null,
+  "err": null
+}
+```
+
+---
+
+## DELETE `/roles-permissions/{roleId}/{permissionId}`
+
+**Authorization:** Admin
+**Description:** Remove permission from role
+
+### Success Response — 200 OK
+
+```json
+{
+  "message": "Successfully removed permission to role",
+  "success": true,
+  "data": null,
+  "err": null
+}
+```
+
+---
+
+## GET `/roles-permissions/{roleId}`
+
+**Authorization:** Admin
+**Description:** Get permissions of a role
+
+### Success Response — 200 OK
+
+```json
+{
+  "message": "fetched all permissions",
+  "success": true,
+  "data": [],
+  "err": null
+}
+```
+
+---
+
+# 👥 User ↔ Role Assignment
+
+---
+
+## POST `/users-roles/assign/{userId}/{roleId}`
+
+**Authorization:** Admin
+**Description:** Assign role to user
+
+### Success Response — 200 OK
+
+```json
+{
+  "message": "Successfully assigned role to the user",
+  "success": true,
+  "data": null,
+  "err": null
+}
+```
+
+---
+
+# 🛠 Setup Instructions
+
+## 1️⃣ Clone the project
+
+```bash
+git clone https://github.com/Vivan1133/Airbnb-AuthInGo.git <ProjectName>
+```
+
+## 2️⃣ Move into project
+
+```bash
+cd <ProjectName>
+```
+
+## 3️⃣ Run the server
+
+```bash
+go run main.go
+```
+
+---
+
+# 📌 Common Response Format
+
+## Success
+
+```json
+{
+  "message": "success message",
+  "success": true,
+  "data": {},
+  "err": null
+}
+```
+
+## Error
+
+```json
+{
+  "message": "error message",
+  "error": "error details",
+  "data": null,
+  "success": false
+}
+```
